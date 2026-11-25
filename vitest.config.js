@@ -8,5 +8,9 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "frontend/src/setupTests.js",
     css: true,
+    include: [
+      "backend/**/*.test.js",
+      "frontend/src/**/*.test.js",
+    ],
   },
 });
