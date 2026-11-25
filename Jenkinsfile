@@ -96,11 +96,63 @@ pipeline {
                                  fingerprint: true
             }
         }
+
+        stage('Deploy Application') {
+            environment {
+                NODE_ENV = 'production'
+                PROD_DB_USERNAME = 'conduit_user'
+                PROD_DB_PASSWORD = credentials('conduit-db-password')
+                PROD_DB_NAME = 'conduit_production'
+                PROD_DB_HOSTNAME = '127.0.0.1'
+                PROD_DB_DIALECT = 'postgres'
+                JWT_KEY = credentials('conduit-jwt-secret')
+            }
+
+            steps {
+                powershell '.\\scripts\\deploy.ps1'
+            }
+        }
+
+        stage('Smoke Testing') {
+            steps {
+                powershell '''
+                    $ErrorActionPreference = "Stop"
+
+                    $HomePage = Invoke-WebRequest `
+                        -Uri "http://127.0.0.1:3002/" `
+                        -UseBasicParsing
+
+                    if ($HomePage.StatusCode -ne 200) {
+                        throw "Frontend verification failed"
+                    }
+
+                    $Articles = Invoke-RestMethod `
+                        -Uri "http://127.0.0.1:3002/api/articles"
+
+                    if ($null -eq $Articles.articles) {
+                        throw "Articles API verification failed"
+                    }
+
+                    $Tags = Invoke-RestMethod `
+                        -Uri "http://127.0.0.1:3002/api/tags"
+
+                    if ($null -eq $Tags.tags) {
+                        throw "Tags API verification failed"
+                    }
+
+                    Write-Host "Frontend verification: PASSED"
+                    Write-Host "Articles API verification: PASSED"
+                    Write-Host "Tags API verification: PASSED"
+                    Write-Host "All smoke tests passed!"
+                '''
+            }
+        }
     }
 
     post {
         success {
-            echo 'Pipeline completed successfully.'
+            echo 'CI/CD pipeline completed successfully.'
+            echo 'Deployed application: http://127.0.0.1:3002'
         }
 
         failure {
