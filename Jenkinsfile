@@ -9,6 +9,8 @@ pipeline {
 
     environment {
         CI = 'true'
+        FORCE_COLOR = '0'
+        NO_COLOR = '1'
     }
 
     stages {
@@ -41,7 +43,7 @@ pipeline {
                     )
 
                     if (result != 0) {
-                        echo 'Security audit reported issues or could not complete. Local demonstration only.'
+                        echo 'Security audit reported issues. Local demonstration only.'
                     }
                 }
             }
@@ -50,6 +52,35 @@ pipeline {
         stage('Unit Testing') {
             steps {
                 bat 'npm run test -- --run'
+            }
+        }
+
+        stage('Install Playwright Browser') {
+            steps {
+                bat 'npx playwright install chromium'
+            }
+        }
+
+        stage('Playwright Testing') {
+            environment {
+                NODE_ENV = 'test'
+                TEST_DB_USERNAME = 'conduit_user'
+                TEST_DB_PASSWORD = credentials('conduit-db-password')
+                TEST_DB_NAME = 'conduit_testing'
+                TEST_DB_HOSTNAME = '127.0.0.1'
+                TEST_DB_DIALECT = 'postgres'
+                JWT_KEY = credentials('conduit-jwt-secret')
+            }
+
+            steps {
+                bat 'npx playwright test'
+            }
+
+            post {
+                always {
+                    archiveArtifacts artifacts: 'playwright-report/**',
+                                     allowEmptyArchive: true
+                }
             }
         }
 
