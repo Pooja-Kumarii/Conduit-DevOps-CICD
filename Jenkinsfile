@@ -2,11 +2,11 @@ pipeline {
     agent any
 
     options {
-        skipDefaultCheckout(true)
-        disableConcurrentBuilds()
-        timestamps()
-    }
-
+    skipDefaultCheckout(true)
+    disableConcurrentBuilds()
+    timestamps()
+    timeout(time: 15, unit: 'MINUTES')
+}
     environment {
         CI = 'true'
         FORCE_COLOR = '0'
