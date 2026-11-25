@@ -13,6 +13,7 @@ function newUser() {
   };
 }
 
+// Test 1: New user registration
 test("New user registration", async ({ page }) => {
   const user = newUser();
 
@@ -37,6 +38,7 @@ test("New user registration", async ({ page }) => {
   ).toBeVisible();
 });
 
+// Test 2: Valid user login
 test("Valid user login", async ({ page, request }) => {
   const user = newUser();
 
@@ -46,12 +48,7 @@ test("Valid user login", async ({ page, request }) => {
 
   expect(registration.ok()).toBeTruthy();
 
-  await page.goto("/");
-
-  await page.getByRole("link", {
-    name: "Login",
-    exact: true,
-  }).click();
+  await page.goto("/#/login");
 
   await page.getByPlaceholder("Email").fill(user.email);
   await page.getByPlaceholder("Password").fill(user.password);
@@ -66,13 +63,9 @@ test("Valid user login", async ({ page, request }) => {
   ).toBeVisible();
 });
 
+// Test 3: Invalid login rejection
 test("Invalid login is rejected", async ({ page }) => {
-  await page.goto("/");
-
-  await page.getByRole("link", {
-    name: "Login",
-    exact: true,
-  }).click();
+  await page.goto("/#/login");
 
   await page.getByPlaceholder("Email").fill(
     `${randomUUID()}@example.com`
@@ -93,9 +86,22 @@ test("Invalid login is rejected", async ({ page }) => {
 
   const response = await responsePromise;
 
-  expect([400, 401, 403, 422]).toContain(response.status());
+  expect(response.status()).toBe(404);
+
+  const responseBody = await response.text();
+
+  expect(responseBody).toMatch(/email not found/i);
+
+  await expect(page).toHaveURL(/#\/login/);
 
   await expect(
-    page.getByRole("button", { name: "Login", exact: true })
+    page.getByRole("button", {
+      name: "Login",
+      exact: true,
+    })
   ).toBeVisible();
+
+  await expect(
+    page.getByRole("link", { name: "New Article" })
+  ).toHaveCount(0);
 });
