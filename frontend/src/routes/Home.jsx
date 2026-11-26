@@ -13,8 +13,8 @@ function Home() {
     <div className="home-page">
       {!isAuth && (
         <BannerContainer>
-          <h1 className="logo-font">conduit DevOps</h1>
-          <p>Share your knowledge with Conduit.</p>
+          <h1 className="logo-font">Conduit CI/CD</h1>
+          <p>Automatically tested, built and deployed by Jenkins.</p>
         </BannerContainer>
       )}
       <ContainerRow type="page">
