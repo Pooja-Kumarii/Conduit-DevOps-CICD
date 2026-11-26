@@ -46,11 +46,40 @@ if ($ExistingTask) {
 }
 
 # Make sure the port is available
-if (Get-NetTCPConnection -LocalPort $Port `
-    -State Listen -ErrorAction SilentlyContinue) {
-    throw "Port 3002 is still occupied."
+# Safely remove leftover deployed server
+$Connections = Get-NetTCPConnection `
+    -LocalPort $Port `
+    -State Listen `
+    -ErrorAction SilentlyContinue
+
+foreach ($ProcessId in @($Connections |
+    Select-Object -ExpandProperty OwningProcess -Unique)) {
+
+    $Process = Get-CimInstance Win32_Process `
+        -Filter "ProcessId=$ProcessId"
+
+    if (
+        $Process -and
+        $Process.Name -eq "node.exe" -and
+        $Process.CommandLine -match '(?i)\s"?C:\\Conduit-Deployment\\backend\\index\.js"?\s*$'
+    ) {
+        Write-Host "Stopping previous Conduit server: $ProcessId"
+
+        Stop-Process -Id $ProcessId -Force -ErrorAction Stop
+    }
+    else {
+        throw "Port 3002 is occupied by an unknown process."
+    }
 }
 
+Start-Sleep -Seconds 3
+
+if (Get-NetTCPConnection -LocalPort $Port `
+    -State Listen -ErrorAction SilentlyContinue) {
+    throw "Deployment port is still occupied."
+}
+
+Write-Host "Deployment port is available."
 # Verify deployment folder
 if (!(Test-Path $DeployPath)) {
     throw "Protected deployment folder is missing."
