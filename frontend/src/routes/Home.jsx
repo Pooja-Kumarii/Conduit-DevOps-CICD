@@ -13,7 +13,7 @@ function Home() {
     <div className="home-page">
       {!isAuth && (
         <BannerContainer>
-          <h1 className="logo-font">conduit</h1>
+          <h1 className="logo-font">conduit DevOps</h1>
           <p>Share your knowledge with Conduit.</p>
         </BannerContainer>
       )}
