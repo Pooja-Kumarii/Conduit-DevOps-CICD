@@ -14,7 +14,7 @@ function Home() {
       {!isAuth && (
         <BannerContainer>
           <h1 className="logo-font">Conduit CI/CD</h1>
-          <p>Automatically tested, POOJA ALISHBA aaaaaaaaand cmdfngorwnf[] deployed by Jenkins.</p>
+          <p>Automatically tested, POOJA ALISHBA aaaaaaanddd cmdfngorwnf[] deployed by Jenkins.</p>
         </BannerContainer>
       )}
       <ContainerRow type="page">
